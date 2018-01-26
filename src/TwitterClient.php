@@ -18,14 +18,15 @@ class TwitterClient extends Client
     const CACHE_KEY_SEPARATOR = '-';
     const CACHE_NAMESPACE = 'twitter';
     const MAX_TWEETS_AMOUNT = 200;
+    const DEFAULT_TWEETS_COUNT = 25;
 
     private $cache;
 
     /**
      * TwitterClient constructor.
-     * @param TwitterOAuth $oAuthParameters
+     * @param array $oAuthParameters
      */
-    public function __construct($oAuthParameters)
+    public function __construct(array $oAuthParameters)
     {
         $this->cache = new FilesystemCache(self::CACHE_NAMESPACE, self::CACHE_LIFETIME_SECONDS);
         parent::__construct(new TwitterOAuth(
@@ -36,19 +37,20 @@ class TwitterClient extends Client
         ));
     }
 
-    public function getCache(){
+    public function getCache()
+    {
         return $this->cache;
     }
 
     /**
      * @param string $screenName
-     * @param int $count
      * @param LoggerInterface $logger
+     * @param int $count
      * @return array
      */
-    public function getTimelineByScreenName(string $screenName, int $count = 25, LoggerInterface $logger): array
+    public function getTimelineByScreenName(string $screenName, LoggerInterface $logger, int $count = self::DEFAULT_TWEETS_COUNT)
     {
-        if ($count > self::MAX_TWEETS_AMOUNT) {
+        if ($count < 1 || $count > self::MAX_TWEETS_AMOUNT) {
             throw new Exception('Trying to get ' . $count . ' tweets while maximum allowed is 200 for ' . $screenName);
         }
         $cacheKey = $screenName . self::CACHE_KEY_SEPARATOR . $count;
@@ -65,8 +67,8 @@ class TwitterClient extends Client
             if (empty($twitterResponse->errors) && empty($twitterResponse->error) && is_array($twitterResponse)) {
                 return $twitterResponse;
             } else {
-                throw new Exception('Unable to load tweets for ' . $screenName . ': '
-                . empty($twitterResponse->errors) ? $twitterResponse->error : print_r($twitterResponse->errors, true));
+                throw new Exception('Unable to load tweets for ' . $screenName . ': ' . print_r($twitterResponse,
+                        true));
             }
         }
     }

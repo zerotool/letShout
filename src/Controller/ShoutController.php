@@ -25,12 +25,12 @@ class ShoutController extends Controller
     public function getAction(string $screenName, int $postsCount, LoggerInterface $logger)
     {
         try {
-            $twitterClient = new TwitterClient($this->getParameter('twitter_oauth'), $logger);
+            $twitterClient = new TwitterClient($this->getParameter('twitter_oauth'));
             $responseData = array_map(
                 function ($tweet) {
                     return utf8_encode(strtoupper($tweet->text) . '!');
                 },
-                $twitterClient->getTimelineByScreenName($screenName, $postsCount, $logger)
+                $twitterClient->getTimelineByScreenName($screenName, $logger, $postsCount)
             );
             return $this->json($responseData);
         } catch (Exception $ex) {
